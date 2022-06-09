@@ -27,7 +27,6 @@ public:
 
     {
 
-        int i;
         int nbchar = chaine.length();
 
         nom = new char[nbchar+1];
@@ -74,9 +73,19 @@ public:
 
         {
 
+            int nbchar;
             delete nom;
 
-            int nbchar = strlen(s.nom);
+            if (s.nom != NULL) 
+            {
+
+                nbchar = strlen(s.nom);
+
+            }
+            else
+            {
+                nbchar = 0;
+            }
 
             nom = new char[nbchar+1];
 
@@ -99,7 +108,24 @@ public:
 
     {
 
-        cout << nom;
+        if (nom != NULL)
+        {
+
+            cout << nom;
+
+        }
+        else
+        {
+
+            cout << "NULL";
+        }
+
+    }
+
+    string collectnom()
+
+    {
+        return nom;
 
     }
 
@@ -184,7 +210,23 @@ public:
 
     }
 
+    string recup_extremite(string type) 
+    
+    {
+        string nomsommet = "ERREUR";
 
+        if (type=="depart")
+        {
+            nomsommet = somdepart.collectnom();
+        }
+
+        if (type == "arrivee")
+        {
+            nomsommet = somarriv.collectnom();
+        }
+
+        return nomsommet;
+    }
 
 };
 
@@ -214,7 +256,8 @@ public:
     ~graphe()
 
     {
-
+        delete[] So;
+        delete[] Ar;
 
     }
 
@@ -222,8 +265,6 @@ public:
 
     graphe(const graphe& g)
     {
-
-
 
         So = new sommet[g.nbsommets];
         Ar = new arc[g.nbarcs];
@@ -439,8 +480,70 @@ public:
 
     }
 
+    //manipulation des connexions
 
-};
+    void listeconnexions_affiche(const string pointdepart)
+    {
+
+        for (int i = 0; i < nbarcs; i++)
+        {
+            if (Ar[i].recup_extremite("depart") == pointdepart)
+
+            {
+                Ar[i].affiche();
+
+            }
+
+            if (Ar[i].recup_extremite("arrivee") == pointdepart)
+
+            {
+                Ar[i].affiche();
+
+            }
+
+
+        }
+        
+    }
+
+    int listeconnexions_copie(string pointdepart, arc liste[])
+    
+    {
+ 
+        int nombreactuel_arcs = 0;
+
+        for (int i = 0; i < nbarcs; i++) {
+
+                if (Ar[i].recup_extremite("depart") == pointdepart)
+
+                {
+                    arc temp(Ar[i]);
+
+                    liste[nombreactuel_arcs] = temp;
+                    nombreactuel_arcs++;
+
+                }
+
+                if (Ar[i].recup_extremite("arrivee") == pointdepart)
+
+                {
+
+                    arc temp(Ar[i]);
+
+                    liste[nombreactuel_arcs] = temp;
+                    nombreactuel_arcs++;
+
+                }
+
+        }
+
+        return nombreactuel_arcs;
+
+    }
+
+
+
+ };
 
 
 int main()
@@ -453,7 +556,6 @@ int main()
 
 
     arc a1(s1, s3, 2);
-    a1.affiche();
 
 
     graphe G;
@@ -461,34 +563,50 @@ int main()
     G.ajoutsommet(s3);
     G.ajoutsommet(s1);
 
-    G.affichesommet();
-
-    G.affichesommet(2);
-
     G.ajoutarc(a1);
-
-    G.affichearc();
-
-    graphe G2;
-
-    G2.affichesommet();
-    G2.affichearc();
 
     sommet s4("Osseghem");
 
     sommet s5("Simonis Leopold II");
+
+    sommet s6("Etangs Noirs");
+
+    sommet s7("Jacques Brel");
+
+    sommet s8("Delacroix");
 
     G.ajoutsommet(s4);
     G.ajoutsommet(s5);
 
     arc a2(s3, s4, 1);
     arc a3(s4, s5, 2);
+    arc a4(s3, s6, 2);
+    arc a5(s1, s7, 2);
+    arc a6(s8, s1, 2);
+
 
     G.ajoutarc(a2);
     G.ajoutarc(a3);
+    G.ajoutarc(a4);
+    G.ajoutarc(a5);
+    G.ajoutarc(a6);
 
     G.affichesommet();
     G.affichearc();
 
+
+    arc listedesarcs[255];
+    
+
+    int nbdesarcs = G.listeconnexions_copie("Gare de l'Ouest", listedesarcs);
+
+    for (int i = 0; i < nbdesarcs; i++)
+    {
+        listedesarcs[i].affiche();
+
+    }
+
+    
+    
     return 0;
 }
