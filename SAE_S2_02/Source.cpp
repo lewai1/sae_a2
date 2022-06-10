@@ -4,7 +4,107 @@
 using namespace std;
 
 
+class trajet
 
+{
+
+protected:
+
+    char* stationdepart;
+    char* stationarrivee;
+    int distance;
+
+public:
+
+    trajet(string depart, string arrivee)
+    {
+        int nbchar_dep = depart.length();
+        int nbchar_arr = arrivee.length();
+
+        stationdepart = new char[nbchar_dep + 1];
+
+        for (int i = 0; i < nbchar_dep; i++)
+        {
+            stationdepart[i] = depart[i];
+        }
+
+        stationdepart[nbchar_dep] = '\0';
+
+        stationarrivee = new char[nbchar_arr + 1];
+
+        for (int i = 0; i < nbchar_arr; i++)
+        {
+            stationarrivee[i] = arrivee[i];
+        }
+
+        stationarrivee[nbchar_arr] = '\0';
+
+        distance = 0;
+
+    }
+
+    trajet(const trajet& t)
+    {
+        stationdepart = t.stationdepart;
+        stationarrivee = t.stationarrivee;
+        distance = t.distance;
+
+    }
+
+    trajet& operator= (const trajet& t)
+    {
+        if (this != &t)
+        {
+            if (stationdepart != NULL)
+            {
+                stationdepart = t.stationdepart;
+            }
+            else
+            {
+                stationdepart = NULL;
+            }
+
+            if (stationarrivee != NULL)
+            {
+                stationarrivee = t.stationarrivee;
+            }
+            else
+            {
+                stationarrivee = NULL;
+            }
+
+            distance = t.distance;
+
+
+        }
+
+        return *this;
+
+
+
+    }
+
+    void affiche()
+
+    {
+        cout << "Le trajet selectionne est le suivant : " << endl;
+        cout << "Depart : " << stationdepart << endl;
+        cout << "Arrivee : " << stationarrivee << endl;
+
+    }
+
+    string depart_recup()
+    {
+        return stationdepart;
+    }
+
+    string arrivee_recup()
+    {
+        return stationarrivee;
+    }
+
+
+};
 
 class sommet
 {
@@ -52,16 +152,24 @@ public:
 
     {
 
-        int nbchar = strlen(s.nom);
-
-        nom = new char[nbchar+1];
-
-        for (int i = 0; i < nbchar; i++)
+        if (s.nom != NULL)
         {
-            nom[i] = s.nom[i];
-        }
 
-        nom[nbchar] = '\0';
+            int nbchar = strlen(s.nom);
+
+            nom = new char[nbchar + 1];
+
+            for (int i = 0; i < nbchar; i++)
+            {
+                nom[i] = s.nom[i];
+            }
+
+            nom[nbchar] = '\0';
+        }
+        else
+        {
+            nom = NULL;
+        }
 
     }
 
@@ -80,23 +188,24 @@ public:
             {
 
                 nbchar = strlen(s.nom);
+                nom = new char[nbchar + 1];
+
+
+                for (int i = 0; i < nbchar; i++)
+
+                {
+                    nom[i] = s.nom[i];
+                }
+
+                nom[nbchar] = '\0';
+
 
             }
             else
             {
                 nbchar = 0;
+                nom = NULL;
             }
-
-            nom = new char[nbchar+1];
-
-
-            for (int i = 0; i < nbchar; i++)
-
-            {
-                nom[i] = s.nom[i];
-            }
-
-            nom[nbchar] = '\0';
 
         }
 
@@ -122,7 +231,7 @@ public:
 
     }
 
-    string collectnom()
+    char* collectnom()
 
     {
         return nom;
@@ -210,10 +319,10 @@ public:
 
     }
 
-    string recup_extremite(string type) 
+    string recup_sommetnom(string type) 
     
     {
-        string nomsommet = "ERREUR";
+        string nomsommet;
 
         if (type=="depart")
         {
@@ -226,6 +335,56 @@ public:
         }
 
         return nomsommet;
+
+    }
+
+    sommet recup_sommetobj(string nomsommet)
+
+    {
+
+        sommet somrecup;
+
+        if (nomsommet == somdepart.collectnom())
+        {
+            somrecup = somdepart;
+        }
+
+        if (nomsommet == somarriv.collectnom())
+        {
+            somrecup = somarriv;
+        }
+
+        return somrecup;
+
+    }
+
+    sommet recup_sommetencommun(arc bis)
+    {
+        sommet final;
+        sommet recup_d = bis.recup_sommetobj(somdepart.collectnom());
+        sommet recup_a = bis.recup_sommetobj(somarriv.collectnom());
+
+        //regarde si bis contient somdepart
+
+        if (recup_d.collectnom() != NULL) 
+        {
+            final = recup_d;
+        }
+
+        //regarde si bis contient somarriv
+
+        if (recup_a.collectnom() != NULL)
+        {
+            final = recup_a;;
+        }
+
+        return final;
+    }
+
+    int recup_poids()
+
+    {
+        return poids;
     }
 
 };
@@ -323,7 +482,17 @@ public:
     }
 
 
+    // Extraction des valeurs de base
 
+    int extraction_nbsommets()
+    {
+        return nbsommets;
+    }
+
+    int extraction_nbarcs()
+    {
+        return nbarcs;
+    }
 
 
 
@@ -480,6 +649,17 @@ public:
 
     }
 
+    //manipulation des sommets
+
+    void listepoints_affiche()
+    {
+        for (int i = 0; i < nbsommets; i++) 
+        {
+            So[i].affiche();
+            cout << endl;
+        }
+    }
+
     //manipulation des connexions
 
     void listeconnexions_affiche(const string pointdepart)
@@ -487,14 +667,14 @@ public:
 
         for (int i = 0; i < nbarcs; i++)
         {
-            if (Ar[i].recup_extremite("depart") == pointdepart)
+            if (Ar[i].recup_sommetnom("depart") == pointdepart)
 
             {
                 Ar[i].affiche();
 
             }
 
-            if (Ar[i].recup_extremite("arrivee") == pointdepart)
+            if (Ar[i].recup_sommetnom("arrivee") == pointdepart)
 
             {
                 Ar[i].affiche();
@@ -506,6 +686,31 @@ public:
         
     }
 
+    void listeconnexions_affiche(sommet pointdepart)
+    {
+
+        for (int i = 0; i < nbarcs; i++)
+        {
+
+            if (Ar[i].recup_sommetnom("depart") == pointdepart.collectnom())
+
+            {
+                Ar[i].affiche();
+
+            }
+
+            if (Ar[i].recup_sommetnom("arrivee") == pointdepart.collectnom())
+
+            {
+                Ar[i].affiche();
+
+            }
+
+
+        }
+
+    }
+
     int listeconnexions_copie(string pointdepart, arc liste[])
     
     {
@@ -514,7 +719,7 @@ public:
 
         for (int i = 0; i < nbarcs; i++) {
 
-                if (Ar[i].recup_extremite("depart") == pointdepart)
+                if (Ar[i].recup_sommetnom("depart") == pointdepart)
 
                 {
                     arc temp(Ar[i]);
@@ -524,7 +729,7 @@ public:
 
                 }
 
-                if (Ar[i].recup_extremite("arrivee") == pointdepart)
+                if (Ar[i].recup_sommetnom("arrivee") == pointdepart)
 
                 {
 
@@ -541,9 +746,157 @@ public:
 
     }
 
+    int listeconnexions_copie(sommet pointdepart, arc liste[])
+
+    {
+
+        int nombreactuel_arcs = 0;
+
+        for (int i = 0; i < nbarcs; i++) {
+
+            if (Ar[i].recup_sommetnom("depart") == pointdepart.collectnom())
+
+            {
+                arc temp(Ar[i]);
+
+                liste[nombreactuel_arcs] = temp;
+                nombreactuel_arcs++;
+
+            }
+
+            if (Ar[i].recup_sommetnom("arrivee") == pointdepart.collectnom())
+
+            {
+
+                arc temp(Ar[i]);
+
+                liste[nombreactuel_arcs] = temp;
+                nombreactuel_arcs++;
+
+            }
+
+        }
+
+        return nombreactuel_arcs;
+
+    }
+
+    // faudrait-il créer une méthode qui crée et renvoie une matrice d'adjacence du graphe?
+
+
+    // Algorithme INCOMPLET de Dijkstra
+
+    void dijkstra(trajet T)
+    {
+
+        //initialisation
+
+        int i;
+        int dist = 0;
+        int nbconnexions;
+        arc* connexions_nbarcs;
+
+        int* ecart = new int[nbsommets];
+        sommet* precedent = new sommet[nbsommets];
+
+        sommet* deja_visite = new sommet[nbsommets];
+        sommet* a_visiter = So;
+
+
+        for (i = 1; i < nbsommets; i++)
+        {
+            ecart[i] = INT_MAX;
+        }
+
+        ecart[0] = 0; //le point de départ est distant de 0 de lui-même
+
+        int cptecart = 0;
+
+        /* On récupère T.stationdebut : ça permettra ainsi de débuter l'algorithme */
+
+        sommet u(T.depart_recup());
+
+
+        while (a_visiter[0].collectnom() == NULL) // donc tant que la liste n'est pas vide
+        
+        {
+            //retirer u de a_visiter
+
+            /*    
+        
+                 int k;
+                 int j;
+                 int cpt;
+        
+                 cpt=0;
+        
+                 for (k=0;k<nb;k++) {
+            
+                     if (a_visiter[k]==u) {
+                
+                         cpt++;
+                     }
+                 }
+        
+                 while (cpt>0) {
+            
+                     k=0;
+        
+                     while (a_visiter[k]!=u) {
+            
+                         k++;
+                     }
+        
+        
+                     for (j=k; j<nb-1; j++) {
+            
+                         a_visiter[j]=a_visiter[j+1];
+            
+                     }
+        
+                 nb--;
+        
+                 cpt--;
+        
+                 }
+    
+             */
+
+            nbconnexions = this->listeconnexions_copie(u, connexions_nbarcs);
+
+            for (i=0; i<nbconnexions; i++)
+            {
+                int distance_alternative;
+
+                distance_alternative = ecart[cptecart] + connexions_nbarcs[i].recup_poids(); //addition ecart actuel et poids supplementaire de la liste
+
+                if (distance_alternative < ecart[cptecart])
+
+                {
+                    ecart[cptecart+1] = distance_alternative;
+                    precedent[cptecart] = u;
+
+                }
+
+            }
+
+            cptecart++;
+
+            //récupérer le u de distance la plus petite
+
+            //u = connexions_nbarcs[i].recup_sommetencommun();
+
+
+        }
+
+        
+
+    }
+
 
 
  };
+
 
 
 int main()
@@ -577,6 +930,9 @@ int main()
 
     G.ajoutsommet(s4);
     G.ajoutsommet(s5);
+    G.ajoutsommet(s6);
+    G.ajoutsommet(s7);
+    G.ajoutsommet(s8);
 
     arc a2(s3, s4, 1);
     arc a3(s4, s5, 2);
@@ -598,13 +954,37 @@ int main()
     arc listedesarcs[255];
     
 
-    int nbdesarcs = G.listeconnexions_copie("Gare de l'Ouest", listedesarcs);
+    cout << "Affichage arcs" << endl;
+
+    int nbdesarcs = G.listeconnexions_copie(s3, listedesarcs);
 
     for (int i = 0; i < nbdesarcs; i++)
     {
         listedesarcs[i].affiche();
 
     }
+
+    G.listepoints_affiche();
+
+    cout<<"test sommet en commun"<<endl;
+
+    sommet s9 = a5.recup_sommetencommun(a6);
+
+    s9.affiche();
+    cout << endl;
+    cout << endl;
+
+
+    sommet s10 = a4.recup_sommetobj("Etangs Noirs");
+
+    s10.affiche();
+    cout << endl;
+
+
+    trajet t("Gare de l'Ouest", "Osseghem");
+
+    t.affiche();
+
 
     
     
