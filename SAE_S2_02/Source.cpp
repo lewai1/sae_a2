@@ -213,6 +213,33 @@ public:
 
     }
 
+    const bool& operator== (const sommet &s)
+    {
+        if ((string)this->nom == (string)s.nom)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    
+    }
+
+    const bool& operator!= (const sommet& s)
+    {
+        if ((string)this->nom != (string)s.nom)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+
+    }
+
+
     void affiche()
 
     {
@@ -338,20 +365,102 @@ public:
 
     }
 
-    sommet recup_sommetobj(string nomsommet)
+    sommet recup_sommetobj(const char* nomsommet)
 
     {
 
         sommet somrecup;
+        char* res_som_d = somdepart.collectnom();
+        char* res_som_a = somarriv.collectnom();
+        bool depart_egal = true;
+        bool arrivee_egal = true;
+        int i;
 
-        if (nomsommet == somdepart.collectnom())
+        i = 0;
+
+        while (res_som_d[i] != '\0' && nomsommet[i] != '\0')
+
+        {
+            if (res_som_d[i] != nomsommet[i])
+            {
+                depart_egal = false;
+            }
+
+            i++;
+        }
+
+        i = 0;
+
+        while (res_som_a[i] != '\0' && nomsommet[i] != '\0')
+
+        {
+            if (res_som_a[i] != nomsommet[i])
+            {
+                arrivee_egal = false;
+            }
+
+            i++;
+        }
+
+        if (depart_egal)
         {
             somrecup = somdepart;
         }
 
-        if (nomsommet == somarriv.collectnom())
+        if (arrivee_egal)
         {
             somrecup = somarriv;
+        }
+
+        return somrecup;
+
+    }
+
+    sommet recup_inversesommetobj(const char* nomsommet)
+
+    {
+
+        sommet somrecup;
+        char* res_som_d = somdepart.collectnom();
+        char* res_som_a = somarriv.collectnom();
+        bool depart_egal = true;
+        bool arrivee_egal = true;
+        int i;
+
+        i = 0;
+
+        while (res_som_d[i] != '\0' && nomsommet[i] != '\0') 
+        
+        {
+            if (res_som_d[i] != nomsommet[i]) 
+            {
+                depart_egal = false;
+            }
+
+            i++;
+        }
+
+        i = 0;
+
+        while (res_som_a[i] != '\0' && nomsommet[i] != '\0')
+
+        {
+            if (res_som_a[i] != nomsommet[i])
+            {
+                arrivee_egal = false;
+            }
+
+            i++;
+        }
+
+        if (depart_egal)
+        {
+            somrecup = somarriv;
+        }
+
+        if (arrivee_egal)
+        {
+            somrecup = somdepart;
         }
 
         return somrecup;
@@ -380,6 +489,7 @@ public:
 
         return final;
     }
+    
 
     int recup_poids()
 
@@ -481,7 +591,6 @@ public:
 
     }
 
-
     // Extraction des valeurs de base
 
     int extraction_nbsommets()
@@ -576,32 +685,69 @@ public:
 
     void ajoutarc(arc a)
     {
-        arc* temp;
-
-        temp = new arc[nbarcs];
-
-        for (int i = 0; i < nbarcs; i++)
-
+        bool sommetpresent_dep = false;
+        bool sommetpresent_arr = false;
+        
+        for (int i = 0; i < nbsommets; i++) 
         {
-            temp[i] = Ar[i];
+
+            if (a.recup_sommetnom("depart") == So[i].collectnom())
+
+            {
+                sommetpresent_dep = true;
+
+            }
+
+            if (a.recup_sommetnom("arrivee") == So[i].collectnom())
+
+            {
+                sommetpresent_arr = true;
+
+            }
 
         }
 
-        delete[] Ar;
-
-        Ar = new arc[nbarcs + 1];
-
-        for (int i = 0; i < nbarcs; i++)
+        if (sommetpresent_dep && sommetpresent_arr)
 
         {
-            Ar[i] = temp[i];
+
+            arc* temp;
+
+            temp = new arc[nbarcs];
+
+            for (int i = 0; i < nbarcs; i++)
+
+            {
+                temp[i] = Ar[i];
+
+            }
+
+            delete[] Ar;
+
+            Ar = new arc[nbarcs + 1];
+
+            for (int i = 0; i < nbarcs; i++)
+
+            {
+                Ar[i] = temp[i];
+
+            }
+
+            Ar[nbarcs] = a;
+
+            nbarcs++;
+
 
         }
 
-        Ar[nbarcs] = a;
+        else
 
-        nbarcs++;
+        {
 
+            cout << "L'arc ne peut pas etre ajoute au graphe" << endl;
+            cout << "Verifiez que les deux sommets soient tous les deux dans le graphe..." << endl;
+
+        }
     }
 
 
@@ -783,6 +929,7 @@ public:
 
     // faudrait-il créer une méthode qui crée et renvoie une matrice d'adjacence du graphe?
 
+ 
 
     // Algorithme INCOMPLET de Dijkstra
 
@@ -794,104 +941,93 @@ public:
         int i;
         int dist = 0;
         int nbconnexions;
-        arc* connexions_nbarcs;
+        arc connexions_nbarcs[256];
 
         int* ecart = new int[nbsommets];
         sommet* precedent = new sommet[nbsommets];
 
         sommet* deja_visite = new sommet[nbsommets];
-        sommet* a_visiter = So;
+        sommet* a_visiter = new sommet[nbsommets];
+
+        for (int m = 0; m < nbsommets; m++)
+        {
+            a_visiter[m] = So[m];
+            
+        }
 
 
         for (i = 1; i < nbsommets; i++)
         {
-            ecart[i] = INT_MAX;
+            ecart[i] = 9999999;
         }
 
-        ecart[0] = 0; //le point de départ est distant de 0 de lui-même
+        ecart[0] = 0;
 
-        int cptecart = 0;
+        int cptecart = 1;
 
         /* On récupère T.stationdebut : ça permettra ainsi de débuter l'algorithme */
 
         sommet u(T.depart_recup());
 
-
-        while (a_visiter[0].collectnom() == NULL) // donc tant que la liste n'est pas vide
-        
+        while (u.collectnom() != T.arrivee_recup())
         {
-            //retirer u de a_visiter
+ 
 
-            /*    
-        
-                 int k;
-                 int j;
-                 int cpt;
-        
-                 cpt=0;
-        
-                 for (k=0;k<nb;k++) {
-            
-                     if (a_visiter[k]==u) {
-                
-                         cpt++;
-                     }
-                 }
-        
-                 while (cpt>0) {
-            
-                     k=0;
-        
-                     while (a_visiter[k]!=u) {
-            
-                         k++;
-                     }
-        
-        
-                     for (j=k; j<nb-1; j++) {
-            
-                         a_visiter[j]=a_visiter[j+1];
-            
-                     }
-        
-                 nb--;
-        
-                 cpt--;
-        
-                 }
-    
-             */
+                nbconnexions = listeconnexions_copie(u, connexions_nbarcs);
 
-            nbconnexions = this->listeconnexions_copie(u, connexions_nbarcs);
-
-            for (i=0; i<nbconnexions; i++)
-            {
-                int distance_alternative;
-
-                distance_alternative = ecart[cptecart] + connexions_nbarcs[i].recup_poids(); //addition ecart actuel et poids supplementaire de la liste
-
-                if (distance_alternative < ecart[cptecart])
-
+                for (i = 0; i < nbconnexions; i++)
                 {
-                    ecart[cptecart+1] = distance_alternative;
-                    precedent[cptecart] = u;
 
+                
+                    
+                         
+                    int distance_alternative;
+
+                    /*if (cptecart>1 && connexions_nbarcs[i].recup_sommetobj(u.collectnom()) == deja_visite[cptecart])
+                    {
+                        i++;
+                    }
+                    else
+                    {*/
+
+                        connexions_nbarcs[i].affiche();
+                        cout << "_" << endl;
+
+                        distance_alternative = ecart[cptecart-1] + connexions_nbarcs[i].recup_poids(); //addition ecart actuel et poids supplementaire de la liste
+
+                        if (distance_alternative < ecart[cptecart])
+
+                        {
+                            ecart[cptecart] = distance_alternative;
+                            precedent[cptecart] = u;
+
+                        }
+                    //}
                 }
 
-            }
+                cptecart++;
 
-            cptecart++;
+                deja_visite[cptecart-1] = u;
 
-            //récupérer le u de distance la plus petite
+                cout << "boucle faite" << endl;
 
-            //u = connexions_nbarcs[i].recup_sommetencommun();
+                //récupérer le u de distance la plus petite
 
+                u = connexions_nbarcs[i - 1].recup_inversesommetobj(u.collectnom());
 
+            
         }
 
-        
+         for (int j = 0; j < cptecart; j++)
+         {
+
+                 precedent[j].affiche();
+                 cout << endl;
+ 
+         }
 
     }
+    
 
 
 
@@ -908,7 +1044,7 @@ int main()
     sommet s3("Beekant");
 
 
-    arc a1(s1, s3, 2);
+    arc a1(s1, s3, 3);
 
 
     graphe G;
@@ -937,7 +1073,7 @@ int main()
     arc a2(s3, s4, 1);
     arc a3(s4, s5, 2);
     arc a4(s3, s6, 2);
-    arc a5(s1, s7, 2);
+    arc a5(s1, s7, 1);
     arc a6(s8, s1, 2);
 
 
@@ -950,8 +1086,17 @@ int main()
     G.affichesommet();
     G.affichearc();
 
+    cout << "Recuperation a1" << endl;
+    sommet s32 = a1.recup_sommetobj("Gare de l'Ouest");
+    s32.affiche();
+    cout << endl;
 
-    arc listedesarcs[255];
+    trajet T("Delacroix", "Jacques Brel");
+    T.affiche();
+
+    G.dijkstra(T);
+
+    /*arc listedesarcs[255];
     
 
     cout << "Affichage arcs" << endl;
@@ -974,7 +1119,6 @@ int main()
     cout << endl;
     cout << endl;
 
-
     sommet s10 = a4.recup_sommetobj("Etangs Noirs");
 
     s10.affiche();
@@ -985,8 +1129,37 @@ int main()
 
     t.affiche();
 
+    sommet s12("Prout");
+    sommet s11("Prout");
 
+    if (s12 == s11) 
     
+    {
+        cout << "Les sommets sont les memes" << endl;
+
+    }
+
+    else
+    {
+
+        cout << "Les sommets sont differents" << endl;
+    }
+    
+
+    sommet s13 = a1.recup_inversesommetobj("Gare de l'Ouest");
+
+    s13.affiche();
+
+    sommet s14("Machin");
+
+
+    arc a16(s1, s14, 42);
+
+    a16.affiche();
+
+    G.ajoutarc(a16);
+
+    */
     
     return 0;
 }
